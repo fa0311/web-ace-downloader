@@ -1,0 +1,108 @@
+import requests
+import json
+import os
+import time
+from PIL import Image
+from io import BytesIO
+import img2pdf
+import warnings
+import math
+
+
+class web_ace_downloader:
+    def __init__(self, dir="./"):
+        self.file = 0
+        self.h = 1200
+        self.w = 760
+        self.session = requests.session()
+        self.dir = dir
+        self.ADDRESS = "https://web-ace.jp"
+
+    def __get_headers(self):
+        return {
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"
+        }
+
+    def login(self, email_address, password, return_location_path="/"):
+        data = {
+            "email_address": email_address,
+            "password": password,
+            "return_location_path": return_location_path,
+        }
+        headers = {"x-requested-with": "XMLHttpRequest"}
+        self.response = self.session.post(
+            "https://shonenjumpplus.com/user_account/login",
+            headers=dict(self.__get_headers(), **headers),
+            data=data,
+        )
+        return self
+
+    def auto_list_download(self, url, sleeptime=2, pdfConversion=True, zero_padding=True):
+        self.json_download(url)
+        self.get_title(url)
+        self.file = 0
+        if os.path.isdir(self.dir + self.title) != True:
+            os.mkdir(self.dir + self.title)
+        for page in self.list:
+            time.sleep(sleeptime)
+            self.download(page, False)
+            self.output(self.dir + self.title + "/", zero_padding=zero_padding)
+        if pdfConversion:
+            self.convertToPdf()
+
+    def json_download(self, url):
+        # Counterfeit User agent for absolutely successfully connection.
+        json_data = self.session.get(url + "/json/", headers=self.__get_headers()).text
+        self.list = json.loads(json_data)
+
+    def get_title(self,url):
+        self.title = "aa"
+
+    def json_localread(self, filepath):
+        with open(filepath) as json_file:
+            json_data = json.load(json_file)
+            self.list = json_data
+
+    def download(self, url, fakeque=False):
+        if fakeque:
+            print("Emulating Download : " + url)
+            self.img = url
+        else:
+            self.img = self.session.get(self.ADDRESS + url, headers=self.__get_headers())
+
+    def output(self, dir,zero_padding=True):
+        file = str(self.file)
+        if zero_padding:
+            index = 1
+            zfill = 0
+            while len(self.list) >= index:
+                index *= 10
+                zfill += 1
+            file = file.zfill(zfill)
+        with open(dir + file + ".jpg", mode='w') as f:
+            f.write()
+        self.file += 1
+
+    def convertToPdf(self, dir):
+        sourceDir = os.listdir(dir)
+        imgcount = 0
+        img = []
+        filextend = sourceDir[0].split(".")
+        filextend = str(".") + str(filextend[1])
+        for images in sourceDir:
+            img.append(dir + str(imgcount) + filextend)
+            imgcount = imgcount + 1
+        with open(dir + "output.pdf", "wb") as f:
+            f.write(img2pdf.convert(img))
+
+    # A simple Json Dumper for debugging.
+    def dumpSimplifiedJson(self, jsObject):
+        f = open("JSON.json", "w")
+        json.dump(
+            jsObject,
+            f,
+            ensure_ascii=False,
+            indent=4,
+            sort_keys=True,
+            separators=(",", ": "),
+        )
