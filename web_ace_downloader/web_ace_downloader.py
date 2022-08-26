@@ -20,20 +20,6 @@ class web_ace_downloader:
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"
         }
 
-    def login(self, email_address, password, return_location_path="/"):
-        data = {
-            "email_address": email_address,
-            "password": password,
-            "return_location_path": return_location_path,
-        }
-        headers = {"x-requested-with": "XMLHttpRequest"}
-        self.response = self.session.post(
-            "https://shonenjumpplus.com/user_account/login",
-            headers=dict(self.__get_headers(), **headers),
-            data=data,
-        )
-        return self
-
     def auto_list_download(self, url, sleeptime=2, pdfConversion=True, zero_padding=True):
         self.get_product(url)
         self.json_download(url)
