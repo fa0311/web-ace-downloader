@@ -56,14 +56,12 @@ class web_ace_downloader:
         response = self.session.get(url)
         if response.status_code != 200:
             raise Exception('Request Error')
-        reg_title = r'<div class="viewerbtn_toNext"><a href="([a-z0-9\/]*?)">次の話へ<i class="fa-chevron-right"></i></a></div>'
+        reg_next_readable = r'<div class="viewerbtn_toNext"><a href="([a-z0-9\/]*?)">次の話へ<i class="fa-chevron-right"></i></a></div>'
+        reg_title = r'<title>(.*?)｜ヤングエースUP - 無料で漫画が読めるWebコミックサイト</title>'
         self.product = {
-            "nextReadableProductUri" : re.findall(reg_title, response.text)[0],
+            "next_readable" : self.ADDRESS + re.findall(reg_next_readable, response.text)[0],
             "title" : re.findall(reg_title, response.text)[0],
         }
-        print(self.product)
-
-        self.product["title"] = "aa"
 
     def json_localread(self, filepath):
         with open(filepath) as json_file:
