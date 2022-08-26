@@ -2,12 +2,9 @@ import requests
 import json
 import os
 import time
-from PIL import Image
-from io import BytesIO
 import img2pdf
-import warnings
-import math
-
+import glob
+import re
 
 class web_ace_downloader:
     def __init__(self, dir="./"):
@@ -38,25 +35,35 @@ class web_ace_downloader:
         return self
 
     def auto_list_download(self, url, sleeptime=2, pdfConversion=True, zero_padding=True):
+        self.get_product(url)
         self.json_download(url)
-        self.get_title(url)
         self.file = 0
-        if os.path.isdir(self.dir + self.title) != True:
-            os.mkdir(self.dir + self.title)
+        if os.path.isdir(self.dir + self.product["title"]) != True:
+            os.mkdir(self.dir + self.product["title"])
         for page in self.list:
             time.sleep(sleeptime)
             self.download(page, False)
-            self.output(self.dir + self.title + "/", zero_padding=zero_padding)
+            self.output(self.dir + self.product["title"] + "/", zero_padding=zero_padding)
         if pdfConversion:
-            self.convertToPdf()
+            self.convertToPdf(self.dir + self.product["title"] + "/")
 
     def json_download(self, url):
         # Counterfeit User agent for absolutely successfully connection.
         json_data = self.session.get(url + "/json/", headers=self.__get_headers()).text
         self.list = json.loads(json_data)
 
-    def get_title(self,url):
-        self.title = "aa"
+    def get_product(self, url):
+        response = self.session.get(url)
+        if response.status_code != 200:
+            raise Exception('Request Error')
+        reg_title = r'<div class="viewerbtn_toNext"><a href="([a-z0-9\/]*?)">次の話へ<i class="fa-chevron-right"></i></a></div>'
+        self.product = {
+            "nextReadableProductUri" : re.findall(reg_title, response.text)[0],
+            "title" : re.findall(reg_title, response.text)[0],
+        }
+        print(self.product)
+
+        self.product["title"] = "aa"
 
     def json_localread(self, filepath):
         with open(filepath) as json_file:
@@ -79,19 +86,12 @@ class web_ace_downloader:
                 index *= 10
                 zfill += 1
             file = file.zfill(zfill)
-        with open(dir + file + ".jpg", mode='w') as f:
-            f.write()
+        with open(dir + file + ".jpg", mode='wb') as f:
+            f.write(self.img.content)
         self.file += 1
 
     def convertToPdf(self, dir):
-        sourceDir = os.listdir(dir)
-        imgcount = 0
-        img = []
-        filextend = sourceDir[0].split(".")
-        filextend = str(".") + str(filextend[1])
-        for images in sourceDir:
-            img.append(dir + str(imgcount) + filextend)
-            imgcount = imgcount + 1
+        img = [i.replace("\\","/") for i in glob.glob(f"{dir}/*") if not i.endswith(".pdf")]
         with open(dir + "output.pdf", "wb") as f:
             f.write(img2pdf.convert(img))
 
