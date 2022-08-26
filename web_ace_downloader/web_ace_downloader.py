@@ -9,8 +9,6 @@ import re
 class web_ace_downloader:
     def __init__(self, dir="./"):
         self.file = 0
-        self.h = 1200
-        self.w = 760
         self.session = requests.session()
         self.dir = dir
         self.ADDRESS = "https://web-ace.jp"
