@@ -1,5 +1,7 @@
 # web_ace_downloader
 
+[For Windows](https://github.com/fa0311/web-ace-downloader-for-windows)
+
 ## 注意
 
 このレポジトリは不正ダウンロードを推進するものではありません<br>
